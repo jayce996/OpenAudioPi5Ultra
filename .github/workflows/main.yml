@@ -1,0 +1,124 @@
+# Build-spec prompt (paste into a coding LLM)
+
+You are an expert Linux audio engineer + build engineer. Generate a **GitHub repository** that builds a bootable **Raspberry Pi OS Lite 64-bit image** for **Raspberry Pi 5** with a Roon-like headless endpoint feature set. The repo must build successfully in GitHub Actions and output an `.img.xz`.
+
+## Hard requirements
+- Target: **Raspberry Pi 5**, **64-bit**, Raspberry Pi OS Lite (no GUI), minimal packages.
+- **Bit-perfect pipeline** by default for USB audio output (Eversolo DMP-A6 in USB DAC mode).
+- Handle formats: FLAC, DSD/DSF (via DoP when enabled), AIFF, OGG, MP3, etc.
+- Provide **resampling to PCM** using **soxr** with HQ options; resampling must respect original sample rates (no forced fixed rate unless user selects).
+- Support:
+  - **Logitech Media Server** endpoint via **squeezelite**
+  - **Spotify Connect** via **librespot**
+  - **AirPlay receiver** via **shairport-sync** in a “bit-perfect only” configuration (avoid DSP; fail closed if it would process)
+- Web control plane: **Flask** UI (no GUI) with:
+  - device/card selection, format display
+  - HQ/LL profile switch
+  - DoP on/off toggle (where applicable)
+  - live logs (journalctl streaming)
+  - latency test utility (round-trip estimate using ALSA loopback where available or simple buffer/underrun test)
+- System tuning:
+  - systemd services with **CPUAffinity** and **nice/rtprio** where safe
+  - **cpuset** dedicated to audio processes (squeezelite/librespot/shairport)
+  - isolate 1 CPU core with `isolcpus=` in cmdline + cpuset for audio
+  - **IRQ pinning** for USB + audio related IRQs
+  - systemd-udev rules to prioritize USB audio (sched/rtprio, power control, autosuspend off)
+  - script to **auto-detect DAC** at boot and write the selected ALSA device into `/etc/audioos/audioos.yaml`
+- Optional kernel: support an **installable PREEMPT_RT kernel**, with:
+  - build-time install attempt (package-based)
+  - runtime enable/disable toggle with clean fallback if RT packages are not available on the selected Raspberry Pi OS branch
+- Provide “pCP-like strict” presets: buffers, soxr quality, DoP toggleable on the fly.
+- Everything must be installable and configured via **pi-gen** custom stage; repo includes:
+  - `.github/workflows/build-image.yml` that checks out pi-gen, copies custom stage, builds image, uploads artifact.
+  - custom stage scripts (idempotent) to install packages, drop configs, enable services.
+  - A `tools/build-local.sh` for local builds.
+
+## Repo deliverables (must exist)
+- `/pi-gen-custom/` with a stage `stage-audioos/` containing:
+  - `00-packages` list
+  - `01-run.sh` (install/configure)
+- `/systemd/` unit files (audio tuning, squeezelite, librespot, shairport, ui)
+- `/udev/99-usb-audio-priority.rules`
+- `/ui/` Flask app with templates/static
+- `/scripts/`:
+  - `detect_dac.sh`
+  - `apply_profile.sh` (HQ/LL)
+  - `install_rt_kernel.sh` (safe fallback)
+  - `irq_pin.sh`
+- `/config/` default YAML/TOML/conf templates
+- `README.md` with exact URLs/ports, first-boot behavior, and how to change output device.
+
+## Acceptance criteria
+- `Build Raspberry Pi Image` workflow completes and produces `audioos-raspios64.img.xz`
+- On first boot, web UI comes up at port `8787`
+- Squeezelite connects to LMS when configured
+- Librespot advertises a Spotify Connect device
+- Shairport-sync advertises an AirPlay target
+- Profiles can be switched from UI and restart services reliably
+- If RT kernel install fails, the system still boots normally and logs the skip
+
+Use safe defaults, prioritize simplicity, and keep image minimal.
+
+# AudioOS (Roon-like headless audio endpoint) for Raspberry Pi 5 (64-bit)
+
+This repo builds a **Raspberry Pi OS Lite 64-bit** `.img` using **pi-gen** + a custom stage that installs and configures:
+- **Squeezelite** (Logitech Media Server endpoint)
+- **Librespot** (Spotify Connect)
+- **Shairport-sync** (AirPlay receiver — configured for "bit-perfect only" behavior)
+- A lightweight **Flask Web UI** (no desktop GUI) to:
+  - select output card/device & format
+  - switch **HQ / LL** profiles (quality vs low latency)
+  - toggle DoP on/off
+  - view live logs & run latency test
+- Audio tuning: **systemd CPUAffinity/cpuset**, **IRQ affinity**, **udev rules** to prioritize USB audio, **DAC auto-detect** at boot
+- Optional **PREEMPT_RT** kernel installation with a safe fallback if unavailable
+
+> Note: Spotify support uses **librespot** (community implementation of Spotify Connect). It is not official Spotify software.
+
+## Quick start (GitHub Actions)
+1. Push this repo to GitHub
+2. Run the workflow **Build Raspberry Pi Image**
+3. Download the generated artifact: `audioos-raspios64.img.xz`
+
+## Local build (Linux)
+```bash
+git clone https://github.com/<you>/<repo>.git
+cd <repo>
+./tools/build-local.sh
+```
+
+## First boot
+- Default hostname: `audioos`
+- Default user: `pi`
+- Default password: `raspberry` (change immediately)
+- Web UI: `http://audioos.local:8787`
+
+## Configuration files
+- `/etc/audioos/audioos.yaml` (main settings)
+- `/etc/default/squeezelite` (generated)
+- `/etc/librespot.toml`
+- `/etc/shairport-sync.conf`
+- `/etc/udev/rules.d/99-usb-audio-priority.rules`
+
+## Profiles
+- **HQ**: larger buffers, soxr very-high quality, min-ringing/hybrid options available
+- **LL**: reduced buffering, aggressive scheduling, lower latency
+
+Switch profiles in the Web UI (or run):
+```bash
+sudo audioos-apply-profile hq
+sudo audioos-apply-profile ll
+```
+
+## PREEMPT_RT runtime option
+AudioOS can attempt to install an RT kernel package at build time and expose a **boot-time toggle** via `/boot/firmware/cmdline.txt` entries and `audioos-rt-toggle`.
+
+If an RT kernel package isn't available on the selected Raspberry Pi OS branch, the installer **skips** and preserves the non-RT kernel.
+
+## Notes on "bit-perfect"
+- For LMS: use Squeezelite with `-o hw:<card>,<device>` and disable DSP.
+- For Spotify: Spotify Connect may resample internally depending on the stream.
+- For AirPlay: AirPlay streams are typically 44.1kHz/16-bit ALAC; we avoid extra DSP.
+
+## License
+MIT
