@@ -1,0 +1,4 @@
+# Prioritize USB audio devices and disable autosuspend
+ACTION=="add|change", SUBSYSTEM=="usb", ATTR{power/control}="on"
+# For snd-usb-audio, request performance (best-effort)
+ACTION=="add|change", SUBSYSTEM=="sound", KERNEL=="card*", ENV{SOUND_CLASS}=="usb", TAG+="systemd"

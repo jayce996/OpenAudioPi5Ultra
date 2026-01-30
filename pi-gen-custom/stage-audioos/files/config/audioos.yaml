@@ -1,0 +1,22 @@
+# AudioOS main config
+device:
+  alsa: "default"        # will be auto-detected and set to hw:CARD,DEV
+  mixer: "software"      # or "none"
+  dop: false             # DSD over PCM (DoP) when supported
+resample:
+  enable: true
+  quality: "hq"          # hq | ll | custom
+  soxr_quality: "very_high"  # low | medium | high | very_high
+  soxr_phase: "hybrid"       # linear | minimum | intermediate | hybrid
+  soxr_flags:
+    - "min_ringing"
+services:
+  squeezelite:
+    name: "AudioOS"
+    lms_host: ""          # optional, empty = auto
+  librespot:
+    name: "AudioOS Spotify"
+  shairport:
+    name: "AudioOS AirPlay"
+profiles:
+  current: "hq"

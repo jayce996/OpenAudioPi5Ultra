@@ -1,0 +1,17 @@
+[Unit]
+Description=Shairport Sync (AirPlay receiver)
+After=network-online.target audioos-tune.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/shairport-sync -c /etc/shairport-sync.conf
+Restart=on-failure
+RestartSec=2
+Nice=-10
+CPUAffinity=3
+LimitRTPRIO=90
+LimitMEMLOCK=infinity
+
+[Install]
+WantedBy=multi-user.target

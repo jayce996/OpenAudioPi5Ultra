@@ -1,0 +1,15 @@
+[Unit]
+Description=AudioOS Web UI (Flask)
+After=network.target
+Wants=network.target
+
+[Service]
+Type=simple
+WorkingDirectory=/opt/audioos/ui
+Environment=PYTHONUNBUFFERED=1
+ExecStart=/opt/audioos/venv/bin/python /opt/audioos/ui/app.py
+Restart=on-failure
+RestartSec=2
+
+[Install]
+WantedBy=multi-user.target

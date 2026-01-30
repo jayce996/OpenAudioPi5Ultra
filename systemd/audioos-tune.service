@@ -1,0 +1,12 @@
+[Unit]
+Description=AudioOS tuning (cpuset, irq pinning, governor)
+After=network.target
+Before=squeezelite.service librespot.service shairport-sync.service
+
+[Service]
+Type=oneshot
+ExecStart=/opt/audioos/scripts/audio_tune.sh
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target

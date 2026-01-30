@@ -1,0 +1,18 @@
+[Unit]
+Description=Squeezelite (LMS endpoint)
+After=network-online.target audioos-tune.service audioos-detect-dac.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+EnvironmentFile=-/etc/default/squeezelite
+ExecStart=/usr/bin/squeezelite $SL_OPTS
+Restart=on-failure
+RestartSec=2
+Nice=-10
+CPUAffinity=3
+LimitRTPRIO=90
+LimitMEMLOCK=infinity
+
+[Install]
+WantedBy=multi-user.target

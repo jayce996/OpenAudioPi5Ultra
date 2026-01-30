@@ -1,0 +1,87 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8"/>
+    <title>AudioOS - SoXR Advanced</title>
+    <style>
+      body { font-family: system-ui, sans-serif; margin: 24px; }
+      .card { border:1px solid #ddd; border-radius:12px; padding:16px; max-width:820px; }
+      label { display:block; margin-top:10px; }
+      input[type=text], select { width: 100%; padding:10px; border-radius:10px; border:1px solid #ccc; }
+      button { margin-top:16px; padding:10px 12px; border-radius:10px; border:1px solid #ccc; background:#fff; cursor:pointer; }
+      .row { display:flex; gap:16px; }
+      .row > div { flex:1; }
+      code { background:#f7f7f7; padding:2px 6px; border-radius:8px; }
+    </style>
+  </head>
+  <body>
+    <h1>SoXR Advanced</h1>
+    <p><a href="/">← Back</a></p>
+
+    <div class="card">
+      <form method="post" action="/soxr">
+        <label>
+          <input type="checkbox" name="res_enable" {% if res_enable %}checked{% endif %}/>
+          Enable squeezelite resampling/upsampling (<code>-u</code>)
+        </label>
+
+        <div class="row">
+          <div>
+            <label>Quality</label>
+            <select name="quality">
+              <option value="very_high" {% if soxr.get('quality','high')=='very_high' %}selected{% endif %}>Very High</option>
+              <option value="high" {% if soxr.get('quality','high')=='high' %}selected{% endif %}>High</option>
+              <option value="medium" {% if soxr.get('quality','high')=='medium' %}selected{% endif %}>Medium</option>
+              <option value="low" {% if soxr.get('quality','high')=='low' %}selected{% endif %}>Low</option>
+              <option value="quick" {% if soxr.get('quality','high')=='quick' %}selected{% endif %}>Quick</option>
+            </select>
+          </div>
+          <div>
+            <label>Phase</label>
+            <select name="phase">
+              <option value="linear" {% if soxr.get('phase','linear')=='linear' %}selected{% endif %}>Linear (L)</option>
+              <option value="intermediate" {% if soxr.get('phase','linear')=='intermediate' %}selected{% endif %}>Intermediate (I)</option>
+              <option value="minimum" {% if soxr.get('phase','linear')=='minimum' %}selected{% endif %}>Minimum (M)</option>
+            </select>
+          </div>
+        </div>
+
+        <label><input type="checkbox" name="steep" {% if soxr.get('steep', False) %}checked{% endif %}/> Steep cutoff (<code>s</code>)</label>
+        <label><input type="checkbox" name="exception" {% if soxr.get('exception', True) %}checked{% endif %}/> Avoid resampling if device supports rate (<code>E</code>)</label>
+        <label><input type="checkbox" name="async_max" {% if soxr.get('async_max', False) %}checked{% endif %}/> Async upsample to max device rate (<code>X</code>)</label>
+
+        <h2>Advanced fields (optional)</h2>
+        <p>These map to squeezelite <code>-u &lt;recipe&gt;:&lt;flags&gt;:&lt;atten&gt;:&lt;precision&gt;:&lt;passband_end&gt;:&lt;stopband_start&gt;:&lt;phase_response&gt;</code>.</p>
+
+        <label>flags_hex (e.g. 2 = SOXR_ROLLOFF_NONE)</label>
+        <input type="text" name="flags_hex" value="{{ soxr.get('flags_hex','') }}"/>
+
+        <label>attenuation_db (0 disables default -1 dB)</label>
+        <input type="text" name="attenuation_db" value="{{ soxr.get('attenuation_db','') }}"/>
+
+        <label>precision_bits (HQ≈20, VHQ≈28)</label>
+        <input type="text" name="precision_bits" value="{{ soxr.get('precision_bits','') }}"/>
+
+        <div class="row">
+          <div>
+            <label>passband_end (default 91.3)</label>
+            <input type="text" name="passband_end" value="{{ soxr.get('passband_end','') }}"/>
+          </div>
+          <div>
+            <label>stopband_start (default 100)</label>
+            <input type="text" name="stopband_start" value="{{ soxr.get('stopband_start','') }}"/>
+          </div>
+        </div>
+
+        <label>phase_response (0-100; 0=min, 50=linear)</label>
+        <input type="text" name="phase_response" value="{{ soxr.get('phase_response','') }}"/>
+
+        <button type="submit">Save & Apply</button>
+      </form>
+    </div>
+
+    <p style="margin-top:16px;color:#555">
+      Tip: for “bit-perfect when possible”, keep <code>E</code> enabled and leave <code>X</code> disabled.
+    </p>
+  </body>
+</html>

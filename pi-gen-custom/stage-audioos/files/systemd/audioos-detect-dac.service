@@ -1,0 +1,12 @@
+[Unit]
+Description=AudioOS detect DAC and set default ALSA device
+After=udev.service
+Before=squeezelite.service librespot.service shairport-sync.service
+
+[Service]
+Type=oneshot
+ExecStart=/opt/audioos/scripts/detect_dac.sh
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target

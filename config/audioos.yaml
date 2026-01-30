@@ -1,0 +1,23 @@
+device:
+  alsa: default
+  mixer: software
+  dop: false
+resample:
+  enable: true
+  quality: hq
+  soxr_quality: very_high
+  soxr_phase: hybrid
+  soxr_flags:
+  - min_ringing
+services:
+  squeezelite:
+    name: AudioOS
+    lms_host: ''
+  librespot:
+    name: AudioOS Spotify
+  shairport:
+    name: AudioOS AirPlay
+profiles:
+  current: hq
+airplay:
+  strict: false

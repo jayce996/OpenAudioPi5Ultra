@@ -1,0 +1,53 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8"/>
+    <title>AudioOS</title>
+    <style>
+      body { font-family: system-ui, sans-serif; margin: 24px; }
+      .row { display:flex; gap:16px; align-items:flex-start; flex-wrap:wrap; }
+      .card { border:1px solid #ddd; border-radius:12px; padding:16px; min-width:320px; }
+      pre { background:#f7f7f7; padding:12px; border-radius:10px; overflow:auto; }
+      button { padding:10px 12px; border-radius:10px; border:1px solid #ccc; background:#fff; cursor:pointer; }
+      input[type=text]{ width:100%; padding:10px; border-radius:10px; border:1px solid #ccc; }
+      .pill { display:inline-block; padding:4px 10px; border-radius:999px; border:1px solid #ccc; }
+    </style>
+  </head>
+  <body>
+    <h1>AudioOS</h1>
+    <div class="row">
+      <div class="card">
+        <h2>Output</h2>
+        <form method="post" action="/set">
+          <label>ALSA device</label><br/>
+          <input type="text" name="device" value="{{device}}"/><br/><br/>
+          <label><input type="checkbox" name="dop" {% if dop %}checked{% endif %}/> DoP (DSD over PCM)</label><br/>
+          <label><input type="checkbox" name="air_strict" {% if air_strict %}checked{% endif %}/> AirPlay strict (bit-perfect best-effort)</label><br/><br/>
+          <button type="submit">Apply</button>
+        </form>
+        <p>Current profile: <span class="pill">{{profile}}</span></p>
+        <form method="post" action="/profile/hq" style="display:inline"><button>HQ</button></form>
+        <form method="post" action="/profile/ll" style="display:inline"><button>LL</button></form>
+      </div>
+
+      <div class="card">
+        <h2>ALSA Cards</h2>
+        <pre>{{cards}}</pre>
+      </div>
+
+      <div class="card">
+        <h2>Logs</h2>
+        <p><a href="/logs/squeezelite">squeezelite</a> | <a href="/logs/librespot">librespot</a> | <a href="/logs/shairport-sync">shairport</a> | <a href="/logs/audioos-ui">ui</a></p>
+        <p>Live: <a href="/logs/live/squeezelite">squeezelite</a> | <a href="/logs/live/librespot">librespot</a> | <a href="/logs/live/shairport-sync">shairport</a></p>
+      </div>
+    </div>
+
+    <p><a href="/soxr">SoXR Advanced</a></p>
+
+    <h2>Tips</h2>
+    <ul>
+      <li>Use <code>hw:CARD,DEV</code> for strict ALSA routing (example: <code>hw:2,0</code>)</li>
+      <li>HQ/LL switches restart audio services automatically.</li>
+    </ul>
+  </body>
+</html>

@@ -1,0 +1,8 @@
+name = "AudioOS Spotify"
+backend = "alsa"
+device = "default"
+bitrate = 320
+volume_ctrl = "softvol"
+initial_volume = 75
+enable_volume_normalisation = false
+cache = "/var/cache/librespot"
